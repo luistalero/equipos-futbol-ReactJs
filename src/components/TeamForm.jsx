@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { uploadImage } from '../api/upload'; // Importamos la nueva función
 import '../styles/components/form.css';
 
 const TeamForm = ({ initialData = {}, onSubmit, onCancel }) => {
@@ -10,8 +11,12 @@ const TeamForm = ({ initialData = {}, onSubmit, onCancel }) => {
     ...initialData,
   });
 
+  const [file, setFile] = useState(null); 
+  const [uploading, setUploading] = useState(false); 
+
   useEffect(() => {
     setFormData(prevData => ({
+      ...prevData,
       name: prevData.name || '',
       city: prevData.city || '',
       foundation_date: prevData.foundation_date || '',
@@ -24,9 +29,28 @@ const TeamForm = ({ initialData = {}, onSubmit, onCancel }) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    setUploading(true);
+
+    try {
+      let finalFormData = { ...formData };
+      if (file) {
+        const uploadResponse = await uploadImage(file);
+        finalFormData.logo_url = uploadResponse.imageUrl;
+      }
+
+      await onSubmit(finalFormData);
+    } catch (error) {
+      alert('Error al subir la imagen. Inténtalo de nuevo.');
+      console.error('Error uploading image:', error);
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -45,12 +69,19 @@ const TeamForm = ({ initialData = {}, onSubmit, onCancel }) => {
         <input type="date" name="foundation_date" value={formData.foundation_date} onChange={handleChange} required />
       </label>
       <label>
-        URL del Logo:
-        <input type="text" name="logo_url" value={formData.logo_url} onChange={handleChange} />
+        Logo:
+        <input type="file" onChange={handleFileChange} accept="image/*" />
+        {formData.logo_url && !file && (
+          <img src={formData.logo_url} alt="Logo actual" style={{ width: '100px', marginTop: '10px' }} />
+        )}
       </label>
       <div className="form-actions">
-        <button type="submit" className="form-button primary">Guardar</button>
-        <button type="button" className="form-button secondary" onClick={onCancel}>Cancelar</button>
+        <button type="submit" className="form-button primary" disabled={uploading}>
+          {uploading ? 'Guardando...' : 'Guardar'}
+        </button>
+        <button type="button" className="form-button secondary" onClick={onCancel} disabled={uploading}>
+          Cancelar
+        </button>
       </div>
     </form>
   );

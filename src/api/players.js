@@ -9,6 +9,15 @@ export const getPlayers = async () => {
   }
 };
 
+export const getPlayerById = async (id) => {
+  try {
+    const response = await apiClient.get(`/players/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error.response.data;
+  }
+};
+
 export const createPlayer = async (playerData) => {
   try {
     const response = await apiClient.post('/players', playerData);
@@ -34,4 +43,5 @@ export const deletePlayer = async (playerId) => {
   } catch (error) {
     throw error.response.data;
   }
+
 };

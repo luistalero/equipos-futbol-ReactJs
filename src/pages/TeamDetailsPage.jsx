@@ -3,7 +3,8 @@ import { useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Card from '../components/Card';
 import { getTeamById } from '../api/teams';
-import '../styles/pages/listpage.css'; // Usaremos los mismos estilos para las tarjetas
+import '../styles/pages/listpage.css';
+import { Link } from 'react-router-dom'; // Importamos Link para los enlaces
 
 const TeamDetailsPage = () => {
   const { id } = useParams();
@@ -40,12 +41,18 @@ const TeamDetailsPage = () => {
           {team.logo_url && <img src={team.logo_url} alt={team.name} style={{ maxWidth: '100px' }} />}
         </Card>
         
-        {team.technicalDirector && (
+        {/* Mostramos el Director Técnico si existe */}
+        {team.technical_director && ( // Corregido: accedemos a 'technical_director'
           <>
             <h2>Director Técnico</h2>
-            <Card title={`${team.technicalDirector.name} ${team.technicalDirector.lastname}`}>
-              <p>Nacionalidad: {team.technicalDirector.nationality}</p>
-              <p>Fecha de Nacimiento: {team.technicalDirector.birth_date}</p>
+            <Card title={`${team.technical_director.name} ${team.technical_director.lastname}`}>
+              {/* Mostramos la foto del DT si existe */}
+              {team.technical_director.photo_url && (
+                <img src={team.technical_director.photo_url} alt={`Foto de ${team.technical_director.name}`} style={{ maxWidth: '100px' }} />
+              )}
+              <p>Nacionalidad: {team.technical_director.nationality}</p>
+              <p>Fecha de Nacimiento: {team.technical_director.birth_date}</p>
+              <Link to={`/technical-directors/${team.technical_director.id}`}>Ver detalles</Link>
             </Card>
           </>
         )}
@@ -55,8 +62,14 @@ const TeamDetailsPage = () => {
           {team.players && team.players.length > 0 ? (
             team.players.map(player => (
               <Card key={player.id} title={`${player.name} ${player.lastname}`}>
+                {/* Mostramos la foto del jugador si existe */}
+                {player.photo_url && (
+                  <img src={player.photo_url} alt={`Foto de ${player.name}`} style={{ maxWidth: '100px' }} />
+                )}
                 <p>Nacionalidad: {player.nationality}</p>
-                <p>Posición: {player.position.name}</p>
+                {/* Verificamos que la posición exista antes de acceder al nombre */}
+                <p>Posición: {player.position ? player.position.name : 'N/A'}</p>
+                <Link to={`/players/${player.id}`}>Ver detalles</Link>
               </Card>
             ))
           ) : (

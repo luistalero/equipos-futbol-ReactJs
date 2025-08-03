@@ -9,6 +9,15 @@ export const getTechnicalDirectors = async () => {
   }
 };
 
+export const getTechnicalDirectorById = async (id) => {
+  try {
+    const response = await apiClient.get(`/technical-directors/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error.response.data;
+  }
+};
+
 export const createTechnicalDirector = async (directorData) => {
   try {
     const response = await apiClient.post('/technical-directors', directorData);

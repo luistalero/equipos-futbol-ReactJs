@@ -1,48 +1,71 @@
 import React, { useState, useEffect } from 'react';
+import { uploadImage } from '../api/upload'; // Importamos la función de subida
 import '../styles/components/form.css';
 import { getTeams } from '../api/teams';
 
 const TechnicalDirectorForm = ({ initialData = {}, onSubmit, onCancel }) => {
   const [teams, setTeams] = useState([]);
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     lastname: '',
     nationality: '',
     birth_date: '',
-    coachedTeamId: '',
+    teamId: '', 
+    photo_url: '',
     ...initialData,
   });
 
-useEffect(() => {
-    setFormData(prevData => ({
-        name: prevData.name || '',
-        lastname: prevData.lastname || '',
-        nationality: prevData.nationality || '',
-        birth_date: prevData.birth_date || '',
-        coachedTeamId: prevData.coachedTeamId || '',
-    }));
-}, [initialData]);
-
-useEffect(() => {
-    const fetchTeams = async () => {
-        try {
-            const teamsData = await getTeams();
-            setTeams(teamsData);
-        } catch (err) {
-            console.error("Error fetching teams:", err);
-        }
+  useEffect(() => {
+    const fetchDataAndInitializeForm = async () => {
+      try {
+        const teamsData = await getTeams();
+        setTeams(teamsData);
+        setFormData({
+          name: initialData.name || '',
+          lastname: initialData.lastname || '',
+          nationality: initialData.nationality || '',
+          birth_date: initialData.birth_date || '',
+          teamId: initialData.coachedTeam ? initialData.coachedTeam.id : '',
+          photo_url: initialData.photo_url || '',
+        });
+      } catch (err) {
+        console.error("Error fetching teams:", err);
+      }
     };
-    fetchTeams();
-}, []);
+    fetchDataAndInitializeForm();
+  }, [initialData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    setUploading(true);
+
+    try {
+      let finalFormData = { ...formData };
+      if (file) {
+        const uploadResponse = await uploadImage(file);
+        finalFormData.photo_url = uploadResponse.imageUrl;
+      }
+      
+      const dataToSend = { ...finalFormData };
+      
+      await onSubmit(dataToSend);
+    } catch (error) {
+      alert('Error al guardar el director técnico.');
+      console.error('Error saving technical director:', error);
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -65,17 +88,19 @@ useEffect(() => {
         <input type="date" name="birth_date" value={formData.birth_date || ''} onChange={handleChange} required />
       </label>
       <label>
-        Equipo a Cargo:
-        <select name="coachedTeamId" value={formData.coachedTeamId || ''} onChange={handleChange}>
-          <option value="">Ninguno</option>
-          {teams.map(team => (
-            <option key={team.id} value={team.id}>{team.name}</option>
-          ))}
-        </select>
+        Foto:
+        <input type="file" onChange={handleFileChange} accept="image/*" />
+        {formData.photo_url && !file && (
+          <img src={formData.photo_url} alt="Foto actual" style={{ width: '100px', marginTop: '10px' }} />
+        )}
       </label>
       <div className="form-actions">
-        <button type="submit" className="form-button primary">Guardar</button>
-        <button type="button" className="form-button secondary" onClick={onCancel}>Cancelar</button>
+        <button type="submit" className="form-button primary" disabled={uploading}>
+          {uploading ? 'Guardando...' : 'Guardar'}
+        </button>
+        <button type="button" className="form-button secondary" onClick={onCancel} disabled={uploading}>
+          Cancelar
+        </button>
       </div>
     </form>
   );

@@ -1,18 +1,25 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { getPositions, createPosition, updatePosition, deletePosition } from '../api/positions';
-import Card from '../components/Card';
-import Header from '../components/Header';
-import ActionButton from '../components/ActionButton';
-import PositionForm from '../components/PositionForm';
-import { AuthContext } from '../components/AuthContext';
-import '../styles/pages/listpage.css';
-import '../styles/pages/modal.css';
+import React, { useState, useEffect, useContext } from "react";
+import {
+  getPositions,
+  createPosition,
+  updatePosition,
+  deletePosition,
+} from "../api/positions";
+import Card from "../components/Card";
+import Header from "../components/Header";
+import ActionButton from "../components/ActionButton";
+import ExcelUploadForm from "../components/ExcelUploadForm";
+import PositionForm from "../components/PositionForm";
+import { AuthContext } from "../components/AuthContext";
+import "../styles/pages/listpage.css";
+import "../styles/pages/modal.css";
 
 const PositionsPage = () => {
   const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
   const [editingPosition, setEditingPosition] = useState(null);
   const { isAdmin } = useContext(AuthContext);
 
@@ -42,12 +49,14 @@ const PositionsPage = () => {
   };
 
   const handleDelete = async (positionId) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar esta posición?')) {
+    if (
+      window.confirm("¿Estás seguro de que quieres eliminar esta posición?")
+    ) {
       try {
         await deletePosition(positionId);
         fetchPositions();
       } catch (err) {
-        alert('Error al eliminar la posición.', err);
+        alert("Error al eliminar la posición.", err);
       }
     }
   };
@@ -62,8 +71,13 @@ const PositionsPage = () => {
       setIsModalOpen(false);
       fetchPositions();
     } catch (err) {
-      alert('Error al guardar la posición.', err);
+      alert("Error al guardar la posición.", err);
     }
+  };
+
+  const handleExcelUploadSuccess = () => {
+    setIsExcelModalOpen(false);
+    fetchPositions(); // Refrescar la lista después de la carga
   };
 
   if (loading) return <div>Cargando posiciones...</div>;
@@ -76,17 +90,29 @@ const PositionsPage = () => {
         {isAdmin && (
           <div className="actions-container">
             <ActionButton label="Crear Posición" onClick={handleCreate} />
+            <ActionButton
+              label="Importar Excel"
+              onClick={() => setIsExcelModalOpen(true)}
+            />
           </div>
         )}
         <h2>Posiciones</h2>
         <div className="card-grid">
           {positions.length > 0 ? (
-            positions.map(position => (
+            positions.map((position) => (
               <Card key={position.id} title={position.name}>
                 {isAdmin && (
                   <div className="card-actions">
-                    <ActionButton label="Editar" onClick={() => handleUpdate(position)} color="secondary" />
-                    <ActionButton label="Eliminar" onClick={() => handleDelete(position.id)} color="danger" />
+                    <ActionButton
+                      label="Editar"
+                      onClick={() => handleUpdate(position)}
+                      color="secondary"
+                    />
+                    <ActionButton
+                      label="Eliminar"
+                      onClick={() => handleDelete(position.id)}
+                      color="danger"
+                    />
                   </div>
                 )}
               </Card>
@@ -96,16 +122,30 @@ const PositionsPage = () => {
           )}
         </div>
       </div>
-      
+
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <PositionForm 
-              initialData={editingPosition} 
-              onSubmit={handleSubmit} 
-              onCancel={() => setIsModalOpen(false)} 
+            <PositionForm
+              initialData={editingPosition}
+              onSubmit={handleSubmit}
+              onCancel={() => setIsModalOpen(false)}
             />
           </div>
+        </div>
+      )}
+
+      {isExcelModalOpen && (
+        <div className="modal-overlay">
+          {" "}
+          <div className="modal-content">
+            {" "}
+            <ExcelUploadForm
+              entityType="positions"
+              onUploadSuccess={handleExcelUploadSuccess}
+              onCancel={() => setIsExcelModalOpen(false)}
+            />{" "}
+          </div>{" "}
         </div>
       )}
     </div>

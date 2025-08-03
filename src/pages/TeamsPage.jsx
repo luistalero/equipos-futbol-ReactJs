@@ -1,19 +1,21 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { getTeams, createTeam, updateTeam, deleteTeam } from '../api/teams';
-import Card from '../components/Card';
-import Header from '../components/Header';
-import ActionButton from '../components/ActionButton';
-import TeamForm from '../components/TeamForm';
-import { AuthContext } from '../components/AuthContext';
-import '../styles/pages/listpage.css';
-import '../styles/pages/modal.css';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from "react";
+import { getTeams, createTeam, updateTeam, deleteTeam } from "../api/teams";
+import Card from "../components/Card";
+import Header from "../components/Header";
+import ActionButton from "../components/ActionButton";
+import ExcelUploadForm from "../components/ExcelUploadForm";
+import TeamForm from "../components/TeamForm";
+import { AuthContext } from "../components/AuthContext";
+import "../styles/pages/listpage.css";
+import "../styles/pages/modal.css";
+import { useNavigate } from "react-router-dom";
 
 const TeamsPage = () => {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState(null);
   const { isAdmin } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -48,12 +50,12 @@ const TeamsPage = () => {
   };
 
   const handleDelete = async (teamId) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar este equipo?')) {
+    if (window.confirm("¿Estás seguro de que quieres eliminar este equipo?")) {
       try {
         await deleteTeam(teamId);
         fetchTeams(); // Refrescar la lista de equipos
       } catch (err) {
-        alert('Error al eliminar el equipo.', err);
+        alert("Error al eliminar el equipo.", err);
       }
     }
   };
@@ -68,8 +70,13 @@ const TeamsPage = () => {
       setIsModalOpen(false);
       fetchTeams(); // Refrescar la lista de equipos
     } catch (err) {
-      alert('Error al guardar el equipo.', err);
+      alert("Error al guardar el equipo.", err);
     }
+  };
+
+  const handleExcelUploadSuccess = () => {
+    setIsExcelModalOpen(false);
+    fetchTeams(); // Refrescar la lista después de la carga
   };
 
   if (loading) return <div>Cargando equipos...</div>;
@@ -82,21 +89,46 @@ const TeamsPage = () => {
         {isAdmin && (
           <div className="actions-container">
             <ActionButton label="Crear Equipo" onClick={handleCreate} />
+            <ActionButton
+              label="Importar Excel"
+              onClick={() => setIsExcelModalOpen(true)}
+            />
           </div>
         )}
         <h2>Equipos de Fútbol</h2>
         <div className="card-grid">
           {teams.length > 0 ? (
-            teams.map(team => (
-              <div key={team.id} onClick={() => handleCardClick(team.id)} style={{ cursor: 'pointer' }}>
+            teams.map((team) => (
+              <div
+                key={team.id}
+                onClick={() => handleCardClick(team.id)}
+                style={{ cursor: "pointer" }}
+              >
                 <Card title={team.name}>
-                  {team.logo_url && <img src={team.logo_url} alt={team.name} style={{ width: '50px', height: '50px' }} />}
+                  {team.logo_url && (
+                    <img
+                      src={team.logo_url}
+                      alt={team.name}
+                      style={{ width: "50px", height: "50px" }}
+                    />
+                  )}
                   <p>Ciudad: {team.city}</p>
                   <p>Fundación: {team.foundation_date}</p>
                   {isAdmin && (
-                    <div className="card-actions" onClick={(e) => e.stopPropagation()}>
-                      <ActionButton label="Editar" onClick={() => handleUpdate(team)} color="secondary" />
-                      <ActionButton label="Eliminar" onClick={() => handleDelete(team.id)} color="danger" />
+                    <div
+                      className="card-actions"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ActionButton
+                        label="Editar"
+                        onClick={() => handleUpdate(team)}
+                        color="secondary"
+                      />
+                      <ActionButton
+                        label="Eliminar"
+                        onClick={() => handleDelete(team.id)}
+                        color="danger"
+                      />
                     </div>
                   )}
                 </Card>
@@ -107,16 +139,30 @@ const TeamsPage = () => {
           )}
         </div>
       </div>
-      
+
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <TeamForm 
-              initialData={editingTeam} 
-              onSubmit={handleSubmit} 
-              onCancel={() => setIsModalOpen(false)} 
+            <TeamForm
+              initialData={editingTeam}
+              onSubmit={handleSubmit}
+              onCancel={() => setIsModalOpen(false)}
             />
           </div>
+        </div>
+      )}
+
+      {isExcelModalOpen && (
+        <div className="modal-overlay">
+          {" "}
+          <div className="modal-content">
+            {" "}
+            <ExcelUploadForm
+              entityType="teams"
+              onUploadSuccess={handleExcelUploadSuccess}
+              onCancel={() => setIsExcelModalOpen(false)}
+            />{" "}
+          </div>{" "}
         </div>
       )}
     </div>
