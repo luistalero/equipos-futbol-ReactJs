@@ -42,11 +42,11 @@ const TechnicalDirectorDetailsPage = () => {
           <p>Fecha de Nacimiento: {director.birth_date}</p>
         </Card>
         
-        {director.coachedTeam && (
+        {director.team && (
           <>
             <h2>Equipo a Cargo</h2>
-            <Card title={director.coachedTeam.name}>
-              <p>Ciudad: {director.coachedTeam.city}</p>
+            <Card title={director.team.name}>
+              <p>Ciudad: {director.team.city}</p>
             </Card>
           </>
         )}

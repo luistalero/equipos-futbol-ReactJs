@@ -52,3 +52,8 @@
   background-color: var(--primary-color);
   color: white;
 }
+
+.buttons-container {
+  display: flex;
+  gap: 10px;
+}

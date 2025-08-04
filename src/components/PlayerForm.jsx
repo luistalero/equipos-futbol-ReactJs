@@ -13,8 +13,8 @@ const PlayerForm = ({ initialData = {}, onSubmit, onCancel }) => {
     lastname: '',
     birth_date: '',
     nationality: '',
-    team_id: '', // Corregido: 'team_id'
-    position_id: '', // Corregido: 'position_id'
+    team_id: '', 
+    position_id: '',
     photo_url: '',
   });
   const [file, setFile] = useState(null);
@@ -32,8 +32,8 @@ const PlayerForm = ({ initialData = {}, onSubmit, onCancel }) => {
           lastname: initialData.lastname || '',
           birth_date: initialData.birth_date || '',
           nationality: initialData.nationality || '',
-          team_id: initialData.team_id || '', // Corregido aquí también
-          position_id: initialData.position_id || '', // Corregido aquí también
+          team_id: initialData.team_id || '',
+          position_id: initialData.position_id || '',
           photo_url: initialData.photo_url || '',
         });
       } catch (err) {
@@ -43,7 +43,7 @@ const PlayerForm = ({ initialData = {}, onSubmit, onCancel }) => {
       }
     };
     fetchDataAndInitializeForm();
-  }, [initialData]); // Dependencia del efecto
+  }, [initialData]); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;

@@ -137,9 +137,9 @@ const TeamDetailsPage = () => {
                 )}
                 <p>Nacionalidad: {team.technicalDirector.nationality}</p>
                 <p>Fecha de Nacimiento: {team.technicalDirector.birth_date}</p>
-                <Link to={`/technical-directors/${team.technicalDirector.id}`}>
+                {/* <Link to={`/technical-directors/${team.technicalDirector.id}`}>
                   Ver detalles
-                </Link>
+                </Link> */}
               </div>
             </Card>
           </>

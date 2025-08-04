@@ -19,12 +19,14 @@ const Header = ({ title }) => {
   return (
     <div className="header-container">
       <h1 className="header-title">{title}</h1>
-      <button onClick={handleHomeClick} className="header-home-button">
-        Inicio
-      </button>
-      <button onClick={toggleTheme}>
-        Cambiar a {theme === 'light' ? 'Oscuro' : 'Claro'}
-      </button>
+      <div className='buttons-container'>
+        <button onClick={handleHomeClick} className="header-home-button">
+          Inicio
+        </button>
+        <button className="header-home-button" onClick={toggleTheme}>
+          Cambiar a {theme === 'light' ? 'Oscuro' : 'Claro'}
+        </button>
+      </div>
     </div>
   );
 };

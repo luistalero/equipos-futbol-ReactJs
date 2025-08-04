@@ -27,7 +27,7 @@ const TechnicalDirectorForm = ({ initialData = {}, onSubmit, onCancel }) => {
           lastname: initialData.lastname || '',
           nationality: initialData.nationality || '',
           birth_date: initialData.birth_date || '',
-          teamId: initialData.coachedTeam ? initialData.coachedTeam.id : '',
+          teamId: initialData.team ? initialData.team.id : '',
           photo_url: initialData.photo_url || '',
         });
       } catch (err) {
@@ -86,6 +86,17 @@ const TechnicalDirectorForm = ({ initialData = {}, onSubmit, onCancel }) => {
       <label>
         Fecha de Nacimiento:
         <input type="date" name="birth_date" value={formData.birth_date || ''} onChange={handleChange} required />
+      </label>
+      <label>
+        Equipo:
+        <select name="teamId" value={formData.teamId || ''} onChange={handleChange} required>
+          <option value="">Seleccione un equipo</option>
+          {teams.map((team) => (
+            <option key={team.id} value={team.id}>
+              {team.name}
+            </option>
+          ))}
+        </select>
       </label>
       <label>
         Foto:

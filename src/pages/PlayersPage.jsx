@@ -110,6 +110,14 @@ const PlayersPage = () => {
                 style={{ cursor: "pointer" }}
               >
                 <Card title={`${player.name} ${player.lastname}`}>
+                  {player.photo_url && (
+                    <img
+                      src={player.photo_url}
+                      alt={`Foto de ${player.name}`}
+                      className="player-image"
+                      style={{ maxWidth: "150px" }}
+                    />
+                  )}
                   <p>Nacionalidad: {player.nationality}</p>
                   <p>Fecha de Nacimiento: {player.birth_date}</p>
                   {player.team && <p>Equipo: {player.team.name}</p>}

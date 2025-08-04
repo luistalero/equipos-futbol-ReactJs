@@ -40,7 +40,6 @@ const PlayerDetailsPage = () => {
             <img src={player.photo_url} alt={`Foto de ${player.name}`} className="details-image" />
           )}
           <p>Fecha de Nacimiento: {player.birth_date}</p>
-          {player.photo_url && <img src={player.photo_url} alt={player.name} style={{ maxWidth: '100px' }} />}
         </Card>
         
         {player.team && (

@@ -85,7 +85,7 @@ const TechnicalDirectoryPage = () => {
 
   const handleExcelUploadSuccess = () => {
     setIsExcelModalOpen(false);
-    fetchDirectors(); // Refrescar la lista después de la carga
+    fetchDirectors();
   };
 
   if (loading) return <div>Cargando directores técnicos...</div>;
@@ -117,6 +117,14 @@ const TechnicalDirectoryPage = () => {
                 style={{ cursor: "pointer" }}
               >
                 <Card title={`${director.name} ${director.lastname}`}>
+                  {director.photo_url && (
+                    <img
+                      src={director.photo_url}
+                      alt={`Foto de ${director.name}`}
+                      className="director-image"
+                      style={{ maxWidth: "150px" }}
+                    />
+                  )}
                   <p>Nacionalidad: {director.nationality}</p>
                   <p>Fecha de Nacimiento: {director.birth_date}</p>
                   {director.coachedTeam && (
