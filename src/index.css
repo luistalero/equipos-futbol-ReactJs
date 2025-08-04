@@ -1,6 +1,11 @@
-/* Importa los estilos base */
 @import url('./styles/base.css');
-
-/* Puedes importar otros archivos aquí, por ejemplo: */
-/* @import url('./components/button.css'); */
-/* @import url('./pages/register.css'); */
+@import url('./styles/components/actionbutton.css');
+@import url('./styles/components/card.css');
+@import url('./styles/components/form.css');
+@import url('./styles/components/header.css');
+@import url('./styles/components/navlinkbutton.css');
+@import url('./styles/pages/homepage.css');
+@import url('./styles/pages/listpage.css');
+@import url('./styles/pages/login.css');
+@import url('./styles/pages/modal.css');
+@import url('./styles/pages/register.css');

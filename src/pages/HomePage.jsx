@@ -16,7 +16,7 @@ const HomePage = () => {
     <div className="home-container">
       <h1>Bienvenido a la aplicación</h1>
       {isAuthenticated ? (
-        <div className="button-grid">
+        <div className="button-grid-home">
           <p>Has iniciado sesión. ¡Aquí puedes gestionar la información!</p>
           <NavLinkButton to="/teams" label="Equipos" />
           <NavLinkButton to="/players" label="Jugadores" />
@@ -25,7 +25,7 @@ const HomePage = () => {
           {isAdmin && (
             <NavLinkButton to="/users" label="Usuarios" />
           )}
-          <button onClick={logout}>Cerrar Sesión</button>
+          <button className='btn-logout' onClick={logout}>Cerrar Sesión</button>
         </div>
       ) : (
         <>

@@ -21,7 +21,7 @@ const useAuth = () => {
             return false;
           }
         } catch (error) {
-          // Si el token es inválido, también cerramos la sesión
+          
           logout();
           return false;
         }
