@@ -62,6 +62,7 @@ const PlayerForm = ({ initialData = {}, onSubmit, onCancel }) => {
       if (file) {
         const uploadResponse = await uploadImage(file);
         finalFormData.photo_url = uploadResponse.imageUrl;
+        setFormData(prevData => ({ ...prevData, photo_url: uploadResponse.imageUrl }));
       }
       await onSubmit(finalFormData);
     } catch (error) {

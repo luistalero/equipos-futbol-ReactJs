@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ActionButton from "./ActionButton";
 import "../styles/pages/modal.css";
+import { uploadImage } from '../api/upload';
 
 const UserForm = ({ initialData, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -8,10 +9,13 @@ const UserForm = ({ initialData, onSubmit, onCancel }) => {
     lastname: "",
     username: "",
     email: "",
+    photo_url: "",
     password: "",
-    role: "", 
+    role: "",
   });
   const [passwordRequired, setPasswordRequired] = useState(false);
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -20,7 +24,8 @@ const UserForm = ({ initialData, onSubmit, onCancel }) => {
         lastname: initialData.lastname || "",
         username: initialData.username || "",
         email: initialData.email || "",
-        password: "", 
+        photo_url: initialData.photo_url || "",
+        password: "",
         role: initialData.role || "",
       });
       setPasswordRequired(false);
@@ -37,17 +42,35 @@ const UserForm = ({ initialData, onSubmit, onCancel }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (initialData) {
-      const dataToSubmit = { ...formData };
-      if (dataToSubmit.password === "") {
-        delete dataToSubmit.password;
+    setUploading(true);
+
+    try {
+      let finalFormData = { ...formData };
+      if (file) {
+        const uploadResponse = await uploadImage(file);
+        finalFormData.photo_url = uploadResponse.imageUrl;
       }
-      onSubmit(dataToSubmit);
-    } else {
-      onSubmit(formData);
+      if (initialData) {
+        if (finalFormData.password === "") {
+          delete finalFormData.password;
+        }
+        await onSubmit(finalFormData);
+      } else {
+        await onSubmit(finalFormData);
+      }
+
+    } catch (error) {
+      alert('Error al procesar la solicitud. Inténtalo de nuevo.');
+      console.error('Error:', error);
+    } finally {
+      setUploading(false);
     }
+  };
+
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
   };
 
   return (
@@ -88,6 +111,15 @@ const UserForm = ({ initialData, onSubmit, onCancel }) => {
           />
         </div>
         <div className="form-group">
+          <label>
+            Foto:
+            <input type="file" onChange={handleFileChange} accept="image/*" />
+            {formData.photo_url && !file && (
+              <img src={formData.photo_url} alt="Foto actual" style={{ width: '100px', marginTop: '10px' }} />
+            )}
+          </label>
+        </div>
+        <div className="form-group">
           <label htmlFor="email">Email:</label>
           <input
             type="email"
@@ -126,7 +158,9 @@ const UserForm = ({ initialData, onSubmit, onCancel }) => {
           </select>
         </div>
         <div className="form-actions">
-          <ActionButton type="submit" label="Guardar" />
+          <button type="submit" className="form-button primary" disabled={uploading}>
+            {uploading ? 'Guardando...' : 'Guardar'}
+          </button>
           <ActionButton type="button" label="Cancelar" onClick={onCancel} color="secondary" />
         </div>
       </form>

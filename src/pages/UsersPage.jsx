@@ -112,6 +112,13 @@ const UsersPage = () => {
                 style={{ cursor: "pointer" }}
               >
                 <Card title={`${user.name} ${user.lastname}`}>
+                {user.photo_url && (
+                    <img
+                      src={user.photo_url}
+                      alt={user.name}
+                      style={{ width: "150px", height: "150px" }}
+                    />
+                  )}
                   <p>Username: {user.username}</p>
                   <p>Email: {user.email}</p>
                   <p>Rol: {user.role}</p>
