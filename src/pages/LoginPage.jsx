@@ -73,7 +73,10 @@ const LoginPage = () => {
           {loading ? 'Iniciando...' : 'Iniciar Sesión'}
         </button>
       </form>
-      <Link to="/register">¿No tienes cuenta? Regístrate aquí.</Link>
+      <div className="login-links">
+        <Link to="/forgot-password">¿Olvidaste tu contraseña?</Link>
+        <Link to="/register">¿No tienes cuenta? Regístrate aquí.</Link>
+      </div>
     </div>
   );
 };

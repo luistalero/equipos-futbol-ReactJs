@@ -18,3 +18,21 @@ export const loginUser = async (credentials) => {
     throw error.response.data;
   }
 };
+
+export const forgotPassword = async (email) => {
+  try {
+    const response = await apiClient.post('/auth/forgot-password', { email });
+    return response.data;
+  } catch (error) {
+    throw error.response.data;
+  }
+};
+
+export const resetPassword = async (token, newPassword) => {
+  try {
+    const response = await apiClient.post('/auth/reset-password', { token, newPassword });
+    return response.data;
+  } catch (error) {
+    throw error.response.data;
+  }
+};

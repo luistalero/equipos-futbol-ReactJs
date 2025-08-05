@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // Importamos useNavigate
+import { Link, useNavigate } from 'react-router-dom';
 import { registerUser } from '../api/auth';
 import '../styles/pages/register.css';
 
 const RegisterPage = () => {
-  const navigate = useNavigate(); // Inicializamos el hook
+  const navigate = useNavigate(); 
 
   const [formData, setFormData] = useState({
     username: '',
@@ -39,7 +39,6 @@ const RegisterPage = () => {
       await registerUser(formData);
       alert('¡Registro exitoso! Ahora puedes iniciar sesión.');
       
-      // Limpiamos el formulario
       setFormData({
         username: '',
         email: '',
@@ -47,7 +46,6 @@ const RegisterPage = () => {
         confirmPassword: '',
       });
       
-      // Redirigimos al usuario a la página de login
       navigate('/login');
       
     } catch (err) {
@@ -62,6 +60,26 @@ const RegisterPage = () => {
     <div className="register-container">
       <h1>Página de Registro</h1>
       <form onSubmit={handleSubmit}>
+        <div>
+          <label>Nombre:</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div>
+          <label>Apellido:</label>
+          <input
+            type="text"
+            name="lastname"
+            value={formData.lastname}
+            onChange={handleChange}
+            required
+          />
+        </div>
         <div>
           <label>Usuario:</label>
           <input
