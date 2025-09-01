@@ -58,13 +58,40 @@ const useAuth = () => {
 
     checkTokenExpiration();
 
-    const suspensionCheckInterval = setInterval(checkUserSuspension, 5000);
+    const ws = new WebSocket(API_URL);
+
+    ws.onopen = () => {
+      console.log('Conexión WebSocket establecida para notificaciones de suspensión.');
+      if (token) {
+        ws.send(JSON.stringify({ type: 'auth', token }));
+      }
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type === 'user-status' && message.status === 'suspended') {
+            console.log('Tu cuenta ha sido suspendida. Cerrando sesión...');
+            logout();
+        }
+      } catch (error) {
+        console.error('Error al procesar el mensaje del WebSocket:', error);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log('Conexión WebSocket cerrada.');
+    };
+
+    ws.onerror = (error) => {
+      console.error('Error en el WebSocket:', error);
+    };
 
     return () => {
-      clearInterval(suspensionCheckInterval);
+      ws.close();
     };
     
-  }, [token]);
+  }, [token, API_URL]);
 
   const login = (jwtToken, userRole) => {
     localStorage.setItem('token', jwtToken);
