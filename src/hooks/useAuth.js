@@ -66,11 +66,11 @@ const useAuth = () => {
     
   }, [token]);
 
-  const login = () => {
-    localStorage.setItem('token');
-    localStorage.setItem('role');
-    setToken(null);
-    setRole(null);
+  const login = (jwtToken, userRole) => {
+    localStorage.setItem('token', jwtToken);
+    localStorage.setItem('role', userRole);
+    setToken(jwtToken);
+    setRole(userRole);
   };
 
   const logout = () => {
