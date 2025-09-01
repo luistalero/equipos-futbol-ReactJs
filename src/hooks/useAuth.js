@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { jwtDecode } from 'jwt-decode'; // Importamos la librería
+import { jwtDecode } from 'jwt-decode';
+import axios from 'axios';
 
 const useAuth = () => {
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [role, setRole] = useState(() => localStorage.getItem('role'));
+
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     // Función para verificar la expiración del token
@@ -29,24 +32,45 @@ const useAuth = () => {
       return true;
     };
 
-    // Verificamos el token inmediatamente al cargar el componente
+    const checkUserSuspension = async () => {
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        try {
+          const decodedToken = jwtDecode(storedToken);
+          const userId = decodedToken.id;
+          const response = await axios.get(`${API_URL}/users/${userId}/status`, {
+            headers: { Authorization: `Bearer ${storedToken}` }
+          });
+          if (response.data.is_suspended) {
+            logout();
+            alert('Tu cuenta ha sido suspendida. Contacta con el soporte para más información.');
+          }
+
+        } catch (error) {
+          if (error.response && error.response.status === 403) {
+            logout();
+            alert('Tu sesión ha sido invalidada. Por favor, inicia sesión de nuevo.');
+          }
+          console.error('Error al verificar el estado de suspensión:', error);
+        }
+      }
+    };
+
     checkTokenExpiration();
 
-    // Configuramos un intervalo para verificar la expiración cada minuto (o el tiempo que prefieras)
-    const interval = setInterval(() => {
-      checkTokenExpiration();
-    }, 60000); // 60000 ms = 1 minuto
+    const suspensionCheckInterval = setInterval(checkUserSuspension, 5000);
 
-    // Limpiamos el intervalo cuando el componente se desmonte
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(suspensionCheckInterval);
+    };
     
-  }, []);
+  }, [token]);
 
-  const login = (jwtToken, userRole) => {
-    localStorage.setItem('token', jwtToken);
-    localStorage.setItem('role', userRole);
-    setToken(jwtToken);
-    setRole(userRole);
+  const login = () => {
+    localStorage.setItem('token');
+    localStorage.setItem('role');
+    setToken(null);
+    setRole(null);
   };
 
   const logout = () => {
