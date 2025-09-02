@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './components/AuthProvider';
 import useAuth from './hooks/useAuth';
+import SuspensionModal from './components/SuspencionModal';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
