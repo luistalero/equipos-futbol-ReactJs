@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import '../styles/components/chat.css'; // Importa el nuevo archivo de estilos
 
 // Define la URL de la API
 const API_URL = import.meta.env.VITE_API_BASE_URL_DOCKER || 'https://equipos-futbol-nodejs-production.up.railway.app/api';
@@ -86,7 +87,7 @@ const ChatComponent = ({ userId }) => {
     return (
       <button
         onClick={() => setIsChatVisible(true)}
-        className="fixed bottom-6 right-6 z-50 p-4 bg-gray-900 text-white rounded-full shadow-lg hover:bg-gray-700 transition-all duration-300 transform hover:scale-110 focus:outline-none"
+        className="chat-bubble-button"
         aria-label="Abrir chat"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -98,13 +99,13 @@ const ChatComponent = ({ userId }) => {
 
   // Ventana del chat completa
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col bg-white rounded-lg shadow-2xl overflow-hidden w-full max-w-sm h-96">
+    <div className="chat-container">
       {/* Encabezado del chat */}
-      <div className="flex items-center justify-between p-4 bg-gray-900 text-white border-b-2 border-gray-700">
-        <h3 className="text-lg font-bold">Soporte Técnico</h3>
+      <div className="chat-header">
+        <h3 className="chat-header-title">Soporte Técnico</h3>
         <button
           onClick={() => setIsChatVisible(false)}
-          className="p-1 rounded-full hover:bg-gray-700 transition-colors focus:outline-none"
+          className="chat-header-close-button"
           aria-label="Cerrar chat"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -114,19 +115,17 @@ const ChatComponent = ({ userId }) => {
       </div>
 
       {/* Área de mensajes */}
-      <div ref={chatMessagesRef} className="flex-1 overflow-y-auto p-4 bg-gray-100">
+      <div ref={chatMessagesRef} className="chat-messages">
         {messages.map((msg, index) => (
           <div
             key={index}
-            className={`flex my-2 ${isMyMessage(msg) ? 'justify-end' : 'justify-start'}`}
+            className={`chat-message-wrapper ${isMyMessage(msg) ? 'chat-message-sent' : 'chat-message-received'}`}
           >
             <div
-              className={`p-3 rounded-xl max-w-[80%] break-words ${
-                isMyMessage(msg) ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-900'
-              }`}
+              className={`chat-message-bubble ${isMyMessage(msg) ? 'sent' : 'received'}`}
             >
-              <p className="text-sm">{msg.text}</p>
-              <span className={`text-xs block text-right mt-1 ${isMyMessage(msg) ? 'text-gray-200' : 'text-gray-600'}`}>
+              <p className="chat-message-text">{msg.text}</p>
+              <span className="chat-message-timestamp">
                 {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
@@ -135,18 +134,18 @@ const ChatComponent = ({ userId }) => {
       </div>
 
       {/* Formulario de entrada de mensajes */}
-      <form onSubmit={handleSendMessage} className="p-4 bg-white border-t-2 border-gray-200">
-        <div className="flex rounded-full overflow-hidden border border-gray-400">
+      <form onSubmit={handleSendMessage} className="chat-input-form">
+        <div className="chat-input-container">
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Escribe un mensaje..."
-            className="flex-1 px-4 py-2 text-gray-900 focus:outline-none"
+            className="chat-input-field"
           />
           <button
             type="submit"
-            className="px-6 bg-gray-900 text-white hover:bg-gray-700 transition-colors focus:outline-none"
+            className="chat-send-button"
           >
             Enviar
           </button>

@@ -17,7 +17,6 @@ import UsersPage from './pages/UsersPage';
 import PrivateRoute from './components/PrivateRoute';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-import ChatComponent from './components/ChatComponent';
 
 function AppContent() {
   const { isSuspendedModalVisible, isAuthErrorModalVisible, handleModalClose } = useAuth();

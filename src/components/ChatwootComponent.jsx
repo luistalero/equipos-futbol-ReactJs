@@ -14,7 +14,7 @@ const ChatwootComponent = () => {
       
       g.onload = function() {
         window.chatwootSDK.run({
-          websiteToken: 'KCPhWNyA8AuRuBZfGdRqYAMf',
+          websiteToken: 'qQDrTj1ue7ZzvTVAHXGtfmaE',
           baseUrl: BASE_URL
         });
       };
