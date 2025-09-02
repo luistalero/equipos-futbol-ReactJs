@@ -1,7 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './components/AuthProvider';
-import useAuth from './hooks/useAuth';
+import { AuthProvider, useAuth } from './hooks/useAuth';
 import SuspensionModal from './components/SuspencionModal';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
@@ -20,7 +19,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import ChatComponent from './components/ChatComponent';
 
 function AppContent() {
-  const { isSuspendedModalVisible, handleModalClose, isAuthenticated, userId } = useAuth();
+  const { isSuspendedModalVisible, isAuthErrorModalVisible, handleModalClose, isAuthenticated, userId } = useAuth();
 
   return (
     <>
@@ -40,8 +39,9 @@ function AppContent() {
           <Route path="/users" element={<PrivateRoute><UsersPage /></PrivateRoute>} />
         </Routes>
         <SuspensionModal
-          isVisible={isSuspendedModalVisible}
+          isVisible={isSuspendedModalVisible || isAuthErrorModalVisible}
           onClose={handleModalClose}
+          message={isAuthErrorModalVisible ? 'Tu sesión ha sido invalidada. Por favor, inicia sesión de nuevo.' : null}
         />
         { isAuthenticated && userId && <ChatComponent userId={userId} />}
     </>
