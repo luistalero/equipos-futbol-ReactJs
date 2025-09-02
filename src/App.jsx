@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './components/AuthProvider';
+import { useAuth } from './hooks/useAuth';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -16,9 +17,11 @@ import PrivateRoute from './components/PrivateRoute';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
-function App() {
+function AppContent() {
+  const { isSuspendedModalVisible, handleModalClose } = useAuth();
+
   return (
-    <AuthProvider>
+    <>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -34,6 +37,18 @@ function App() {
           <Route path="/technical-directory/:id" element={<PrivateRoute><TechnicalDirectorDetailsPage /></PrivateRoute>} />
           <Route path="/users" element={<PrivateRoute><UsersPage /></PrivateRoute>} />
         </Routes>
+        <SuspensionModal
+        isVisible={isSuspendedModalVisible}
+        onClose={handleModalClose}
+      />
+    </>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
     </AuthProvider>
   );
 }
