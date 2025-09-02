@@ -74,6 +74,7 @@ const useAuth = () => {
         if (message.type === 'user-status' && message.status === 'suspended') {
             console.log('Tu cuenta ha sido suspendida. Cerrando sesión...');
             logout();
+            window.location.reload(); 
         }
       } catch (error) {
         console.error('Error al procesar el mensaje del WebSocket:', error);
