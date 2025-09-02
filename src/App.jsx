@@ -20,7 +20,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import ChatComponent from './components/ChatComponent';
 
 function AppContent() {
-  const { isSuspendedModalVisible, isAuthErrorModalVisible, handleModalClose, isAuthenticated, userId } = useAuth();
+  const { isSuspendedModalVisible, isAuthErrorModalVisible, handleModalClose } = useAuth();
 
   return (
     <>
@@ -44,7 +44,7 @@ function AppContent() {
           onClose={handleModalClose}
           message={isAuthErrorModalVisible ? 'Tu sesión ha sido invalidada. Por favor, inicia sesión de nuevo.' : null}
         />
-        { isAuthenticated && userId && <ChatComponent userId={userId} />}
+        {/* { isAuthenticated && userId && <ChatComponent userId={userId} />} */}
     </>
   );
 }

@@ -1,119 +1,188 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
+import {jwtDecode} from 'jwt-decode';
 
-// Reemplaza esto con tu URL base del backend
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_DOCKER; 
+// Define la URL del WebSocket y la API
+const VITE_WS_URL = import.meta.env.VITE_WS_URL || 'wss://equipos-futbol-nodejs-production.up.railway.app';
+const API_URL = import.meta.env.VITE_API_BASE_URL_DOCKER || 'https://equipos-futbol-nodejs-production.up.railway.app/api';
 
-// Acepta la prop userId que viene del componente padre
 const ChatComponent = ({ userId }) => {
   const [messages, setMessages] = useState([]);
-  const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [newMessage, setNewMessage] = useState('');
+  const [isChatVisible, setIsChatVisible] = useState(false);
+  const ws = useRef(null);
+  const chatMessagesRef = useRef(null);
 
+  // Efecto para conectar al WebSocket y recibir mensajes
   useEffect(() => {
-    const fetchChatHistory = async () => {
-      try {
-        setIsLoading(true);
-        // Usa la prop userId en la URL
-        const response = await fetch(`${API_BASE_URL}/chat-history/${userId}`);
-        if (!response.ok) {
-          throw new Error('Error al obtener el historial de chat');
-        }
-        const history = await response.json();
-        setMessages(history);
-      } catch (error) {
-        console.error('Error:', error);
-      } finally {
-        setIsLoading(false);
+    // Si el WebSocket ya está conectado, no hace nada
+    if (ws.current) return;
+
+    ws.current = new WebSocket(VITE_WS_URL);
+
+    ws.current.onopen = () => {
+      console.log('WebSocket conectado para chat.');
+      const token = localStorage.getItem('token');
+      if (token) {
+        // Envía el token para autenticar la conexión
+        ws.current.send(JSON.stringify({ type: 'auth', token }));
       }
     };
-    // El efecto se ejecuta solo si hay un userId válido
-    if (userId) {
-      fetchChatHistory();
-    }
-    
-  }, [userId]); // El efecto se vuelve a ejecutar si la prop userId cambia
 
-  const sendMessageToBackend = async (userMessage) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/send-message`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: userId, // Usa la prop userId en el cuerpo de la solicitud
-          message: userMessage,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al enviar el mensaje al backend');
+    ws.current.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === 'chat_message') {
+        // Agrega el nuevo mensaje a la lista de mensajes
+        setMessages((prevMessages) => [...prevMessages, message.payload]);
       }
+    };
 
-      const updatedHistory = await response.json();
-      setMessages(updatedHistory);
-    } catch (error) {
-      console.error('Error al comunicarse con el backend:', error);
-      const n8nResponse = { text: "Lo siento, hubo un error. Por favor, inténtalo de nuevo más tarde.", sender: 'n8n' };
-      setMessages(prevMessages => [...prevMessages, n8nResponse]);
+    ws.current.onclose = () => {
+      console.log('WebSocket de chat desconectado.');
+    };
+
+    ws.current.onerror = (error) => {
+      console.error('Error en el WebSocket de chat:', error);
+    };
+
+    return () => {
+      if (ws.current) {
+        ws.current.close();
+      }
+    };
+  }, []);
+
+  // Efecto para cargar los mensajes iniciales del servidor
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const decodedToken = jwtDecode(token);
+        const { role } = decodedToken;
+        const isAdmin = role === 'admin';
+        const endpoint = isAdmin ? `${API_URL}/messages` : `${API_URL}/messages/${userId}`;
+        
+        const response = await axios.get(endpoint, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setMessages(response.data);
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      }
+    };
+
+    fetchMessages();
+  }, [userId]);
+
+  // Efecto para que el chat se desplace automáticamente hacia el final
+  useEffect(() => {
+    if (chatMessagesRef.current) {
+      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
     }
-  };
+  }, [messages, isChatVisible]);
 
+  // Función para manejar el envío de mensajes
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (inputValue.trim() === '') return;
+    if (!newMessage.trim()) return;
 
-    const userMessageObject = {
-      text: inputValue,
-      sender: 'user',
+    const token = localStorage.getItem('token');
+    const decodedToken = jwtDecode(token);
+
+    const messagePayload = {
+      senderId: decodedToken.id,
+      receiverId: 'admin',
+      message: newMessage,
+      role: decodedToken.role
     };
-    setMessages(prevMessages => [...prevMessages, userMessageObject]);
-    setInputValue('');
-    
-    sendMessageToBackend(inputValue);
+
+    // Envía el mensaje a través del WebSocket
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(JSON.stringify({ type: 'chat_message', payload: messagePayload }));
+    }
+
+    setNewMessage('');
   };
 
+  const isMyMessage = (message) => {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+    const decodedToken = jwtDecode(token);
+    return message.senderId === decodedToken.id;
+  };
+
+  // Burbuja de chat para alternar la visibilidad
+  if (!isChatVisible) {
+    return (
+      <button
+        onClick={() => setIsChatVisible(true)}
+        className="fixed bottom-6 right-6 z-50 p-4 bg-gray-900 text-white rounded-full shadow-lg hover:bg-gray-700 transition-all duration-300 transform hover:scale-110 focus:outline-none"
+        aria-label="Abrir chat"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+        </svg>
+      </button>
+    );
+  }
+
+  // Ventana del chat completa
   return (
-    <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '16px', maxWidth: '400px', margin: 'auto' }}>
-      {isLoading ? (
-        <div style={{ textAlign: 'center' }}>Cargando historial...</div>
-      ) : (
-        <div style={{ height: '300px', overflowY: 'scroll', marginBottom: '16px' }}>
-          {messages.map((msg, index) => (
-            <div 
-              key={index} 
-              style={{ 
-                textAlign: msg.sender === 'user' ? 'right' : 'left', 
-                marginBottom: '8px' 
-              }}
-            >
-              <div 
-                style={{ 
-                  background: msg.sender === 'user' ? '#007bff' : '#f1f0f0', 
-                  color: msg.sender === 'user' ? 'white' : 'black', 
-                  padding: '8px', 
-                  borderRadius: '12px', 
-                  display: 'inline-block',
-                  maxWidth: '70%'
-                }}
-              >
-                {msg.text}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      <form onSubmit={handleSendMessage} style={{ display: 'flex' }}>
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Escribe tu mensaje..."
-          style={{ flexGrow: '1', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-        />
-        <button type="submit" style={{ marginLeft: '8px', padding: '8px 16px', border: 'none', borderRadius: '4px', background: '#007bff', color: 'white' }}>
-          Enviar
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col bg-white rounded-lg shadow-2xl overflow-hidden w-full max-w-sm h-96">
+      {/* Encabezado del chat */}
+      <div className="flex items-center justify-between p-4 bg-gray-900 text-white border-b-2 border-gray-700">
+        <h3 className="text-lg font-bold">Soporte Técnico</h3>
+        <button
+          onClick={() => setIsChatVisible(false)}
+          className="p-1 rounded-full hover:bg-gray-700 transition-colors focus:outline-none"
+          aria-label="Cerrar chat"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
+      </div>
+
+      {/* Área de mensajes */}
+      <div ref={chatMessagesRef} className="flex-1 overflow-y-auto p-4 bg-gray-100">
+        {messages.map((msg, index) => (
+          <div
+            key={index}
+            className={`flex my-2 ${isMyMessage(msg) ? 'justify-end' : 'justify-start'}`}
+          >
+            <div
+              className={`p-3 rounded-xl max-w-[80%] break-words ${
+                isMyMessage(msg) ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-900'
+              }`}
+            >
+              <p className="text-sm">{msg.message}</p>
+              <span className={`text-xs block text-right mt-1 ${isMyMessage(msg) ? 'text-gray-200' : 'text-gray-600'}`}>
+                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Formulario de entrada de mensajes */}
+      <form onSubmit={handleSendMessage} className="p-4 bg-white border-t-2 border-gray-200">
+        <div className="flex rounded-full overflow-hidden border border-gray-400">
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Escribe un mensaje..."
+            className="flex-1 px-4 py-2 text-gray-900 focus:outline-none"
+          />
+          <button
+            type="submit"
+            className="px-6 bg-gray-900 text-white hover:bg-gray-700 transition-colors focus:outline-none"
+          >
+            Enviar
+          </button>
+        </div>
       </form>
     </div>
   );
