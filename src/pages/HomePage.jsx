@@ -1,11 +1,11 @@
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../components/AuthContext';
 import NavLinkButton from '../components/NavLinkButton';
 import '../styles/pages/homepage.css';
+import useAuth from '../hooks/useAuth';
 
 const HomePage = () => {
-  const { isAuthenticated, logout, isAdmin } = useContext(AuthContext);
+  const { isAuthenticated, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const handleLoginClick = () => {
