@@ -17,9 +17,10 @@ import UsersPage from './pages/UsersPage';
 import PrivateRoute from './components/PrivateRoute';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import ChatComponent from './components/ChatComponent';
 
 function AppContent() {
-  const { isSuspendedModalVisible, handleModalClose } = useAuth();
+  const { isSuspendedModalVisible, handleModalClose, isAuthenticated, userId } = useAuth();
 
   return (
     <>
@@ -39,9 +40,10 @@ function AppContent() {
           <Route path="/users" element={<PrivateRoute><UsersPage /></PrivateRoute>} />
         </Routes>
         <SuspensionModal
-        isVisible={isSuspendedModalVisible}
-        onClose={handleModalClose}
-      />
+          isVisible={isSuspendedModalVisible}
+          onClose={handleModalClose}
+        />
+        { isAuthenticated && userId && <ChatComponent userId={userId} />}
     </>
   );
 }
