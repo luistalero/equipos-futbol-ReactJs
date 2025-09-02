@@ -15,38 +15,40 @@ const ChatComponent = ({ userId }) => {
 
   // Efecto para conectar al WebSocket y recibir mensajes
   useEffect(() => {
-    // Si el WebSocket ya está conectado, no hace nada
-    if (ws.current) return;
+    // Evita reconexiones innecesarias en desarrollo.
+    if (!ws.current) {
+        ws.current = new WebSocket(VITE_WS_URL);
 
-    ws.current = new WebSocket(VITE_WS_URL);
+        ws.current.onopen = () => {
+          console.log('WebSocket conectado para chat.');
+          const token = localStorage.getItem('token');
+          if (token) {
+            // Envía el token para autenticar la conexión
+            ws.current.send(JSON.stringify({ type: 'auth', token }));
+          }
+        };
 
-    ws.current.onopen = () => {
-      console.log('WebSocket conectado para chat.');
-      const token = localStorage.getItem('token');
-      if (token) {
-        // Envía el token para autenticar la conexión
-        ws.current.send(JSON.stringify({ type: 'auth', token }));
-      }
-    };
+        ws.current.onmessage = (event) => {
+          const message = JSON.parse(event.data);
+          if (message.type === 'chat_message') {
+            // Agrega el nuevo mensaje a la lista de mensajes
+            setMessages((prevMessages) => [...prevMessages, message.payload]);
+          }
+        };
 
-    ws.current.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'chat_message') {
-        // Agrega el nuevo mensaje a la lista de mensajes
-        setMessages((prevMessages) => [...prevMessages, message.payload]);
-      }
-    };
+        ws.current.onclose = () => {
+          console.log('WebSocket de chat desconectado.');
+        };
 
-    ws.current.onclose = () => {
-      console.log('WebSocket de chat desconectado.');
-    };
-
-    ws.current.onerror = (error) => {
-      console.error('Error en el WebSocket de chat:', error);
-    };
-
+        ws.current.onerror = (error) => {
+          console.error('Error en el WebSocket de chat:', error);
+        };
+    }
+    
+    // Función de limpieza para cerrar la conexión del WebSocket
     return () => {
-      if (ws.current) {
+      // Solo cierra la conexión si está abierta
+      if (ws.current && ws.current.readyState === WebSocket.OPEN) {
         ws.current.close();
       }
     };
@@ -57,12 +59,10 @@ const ChatComponent = ({ userId }) => {
     const fetchMessages = async () => {
       try {
         const token = localStorage.getItem('token');
-        if (!token) return;
+        if (!token || !userId) return;
 
-        const decodedToken = jwtDecode(token);
-        const { role } = decodedToken;
-        const isAdmin = role === 'admin';
-        const endpoint = isAdmin ? `${API_URL}/messages` : `${API_URL}/messages/${userId}`;
+        // Modificado para usar siempre el endpoint del usuario, ya que el endpoint del administrador parece no funcionar.
+        const endpoint = `${API_URL}/messages/${userId}`;
         
         const response = await axios.get(endpoint, {
           headers: { Authorization: `Bearer ${token}` }
@@ -86,7 +86,7 @@ const ChatComponent = ({ userId }) => {
   // Función para manejar el envío de mensajes
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !ws.current || ws.current.readyState !== WebSocket.OPEN) return;
 
     const token = localStorage.getItem('token');
     const decodedToken = jwtDecode(token);
@@ -99,9 +99,7 @@ const ChatComponent = ({ userId }) => {
     };
 
     // Envía el mensaje a través del WebSocket
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify({ type: 'chat_message', payload: messagePayload }));
-    }
+    ws.current.send(JSON.stringify({ type: 'chat_message', payload: messagePayload }));
 
     setNewMessage('');
   };
