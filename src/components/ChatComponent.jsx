@@ -1,67 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
-// Define la URL del WebSocket y la API
-const VITE_WS_URL = import.meta.env.VITE_WS_URL || 'wss://equipos-futbol-nodejs-production.up.railway.app';
+// Define la URL de la API
 const API_URL = import.meta.env.VITE_API_BASE_URL_DOCKER || 'https://equipos-futbol-nodejs-production.up.railway.app/api';
 
 const ChatComponent = ({ userId }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isChatVisible, setIsChatVisible] = useState(false);
-  const ws = useRef(null);
   const chatMessagesRef = useRef(null);
-
-  // Efecto para conectar al WebSocket y recibir mensajes
+  
+  // Efecto para cargar y refrescar los mensajes del servidor
   useEffect(() => {
-    // Evita reconexiones innecesarias en desarrollo.
-    if (!ws.current) {
-        ws.current = new WebSocket(VITE_WS_URL);
-
-        ws.current.onopen = () => {
-          console.log('WebSocket conectado para chat.');
-          const token = localStorage.getItem('token');
-          if (token) {
-            // Envía el token para autenticar la conexión
-            ws.current.send(JSON.stringify({ type: 'auth', token }));
-          }
-        };
-
-        ws.current.onmessage = (event) => {
-          const message = JSON.parse(event.data);
-          if (message.type === 'chat_message') {
-            // Agrega el nuevo mensaje a la lista de mensajes
-            setMessages((prevMessages) => [...prevMessages, message.payload]);
-          }
-        };
-
-        ws.current.onclose = () => {
-          console.log('WebSocket de chat desconectado.');
-        };
-
-        ws.current.onerror = (error) => {
-          console.error('Error en el WebSocket de chat:', error);
-        };
-    }
-    
-    // Función de limpieza para cerrar la conexión del WebSocket
-    return () => {
-      // Solo cierra la conexión si está abierta
-      if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-        ws.current.close();
-      }
-    };
-  }, []);
-
-  // Efecto para cargar los mensajes iniciales del servidor
-  useEffect(() => {
+    let intervalId;
     const fetchMessages = async () => {
       try {
         const token = localStorage.getItem('token');
         if (!token || !userId) return;
 
-        // Modificado para usar siempre el endpoint del usuario, ya que el endpoint del administrador parece no funcionar.
         const endpoint = `${API_URL}/messages/${userId}`;
         
         const response = await axios.get(endpoint, {
@@ -69,11 +26,18 @@ const ChatComponent = ({ userId }) => {
         });
         setMessages(response.data);
       } catch (error) {
-        console.error('Error fetching messages:', error);
+        console.error('Error al obtener los mensajes:', error);
       }
     };
 
+    // Carga los mensajes inmediatamente
     fetchMessages();
+
+    // Configura el polling para refrescar los mensajes cada 5 segundos
+    intervalId = setInterval(fetchMessages, 5000);
+
+    // Limpieza al desmontar el componente
+    return () => clearInterval(intervalId);
   }, [userId]);
 
   // Efecto para que el chat se desplace automáticamente hacia el final
@@ -83,32 +47,39 @@ const ChatComponent = ({ userId }) => {
     }
   }, [messages, isChatVisible]);
 
-  // Función para manejar el envío de mensajes
-  const handleSendMessage = (e) => {
+  // Función para manejar el envío de mensajes a través de la API REST
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !ws.current || ws.current.readyState !== WebSocket.OPEN) return;
+    if (!newMessage.trim()) return;
+    
+    try {
+        const token = localStorage.getItem('token');
+        const decodedToken = jwtDecode(token);
+        
+        const messagePayload = {
+            userId: decodedToken.id, // Tu backend espera 'userId'
+            message: newMessage, // Tu backend espera 'message'
+        };
+        
+        // Envia el mensaje a través de la API REST
+        await axios.post(`${API_URL}/messages/send`, messagePayload, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
 
-    const token = localStorage.getItem('token');
-    const decodedToken = jwtDecode(token);
-
-    const messagePayload = {
-      senderId: decodedToken.id,
-      receiverId: 'admin',
-      message: newMessage,
-      role: decodedToken.role
-    };
-
-    // Envía el mensaje a través del WebSocket
-    ws.current.send(JSON.stringify({ type: 'chat_message', payload: messagePayload }));
-
-    setNewMessage('');
+        // Limpia el input del mensaje
+        setNewMessage('');
+        
+    } catch (error) {
+        console.error('Error al enviar el mensaje:', error);
+    }
   };
 
   const isMyMessage = (message) => {
     const token = localStorage.getItem('token');
     if (!token) return false;
     const decodedToken = jwtDecode(token);
-    return message.senderId === decodedToken.id;
+    // El modelo de Chat en tu backend usa 'sender' y 'user', no 'senderId'
+    return message.sender === 'user' && message.userId === decodedToken.id; 
   };
 
   // Burbuja de chat para alternar la visibilidad
@@ -155,9 +126,9 @@ const ChatComponent = ({ userId }) => {
                 isMyMessage(msg) ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-900'
               }`}
             >
-              <p className="text-sm">{msg.message}</p>
+              <p className="text-sm">{msg.text}</p>
               <span className={`text-xs block text-right mt-1 ${isMyMessage(msg) ? 'text-gray-200' : 'text-gray-600'}`}>
-                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
           </div>
