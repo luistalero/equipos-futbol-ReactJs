@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import NavLinkButton from '../components/NavLinkButton';
 import '../styles/pages/homepage.css';
 import useAuth from '../hooks/useAuth';
@@ -29,8 +29,7 @@ const HomePage = () => {
         </div>
       ) : (
         <>
-          <p>Por favor, inicia sesión para ver el contenido.</p>
-          <button onClick={handleLoginClick}>Iniciar Sesión</button>
+          <Navigate to="/login" />
         </>
       )}
     </div>
