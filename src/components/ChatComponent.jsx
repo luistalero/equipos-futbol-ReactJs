@@ -33,8 +33,7 @@ const ChatComponent = ({ userId }) => {
     // Carga los mensajes inmediatamente
     fetchMessages();
 
-    // Configura el polling para refrescar los mensajes cada 5 segundos
-    // intervalId = setInterval(fetchMessages, 5000);
+    intervalId = setInterval(fetchMessages, 1000);
 
     // Limpieza al desmontar el componente
     return () => clearInterval(intervalId);
