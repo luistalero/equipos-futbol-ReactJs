@@ -1,16 +1,11 @@
-import React, { useContext } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Navigate } from 'react-router-dom';
 import NavLinkButton from '../components/NavLinkButton';
 import '../styles/pages/homepage.css';
 import useAuth from '../hooks/useAuth';
 
 const HomePage = () => {
   const { isAuthenticated, logout, isAdmin } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLoginClick = () => {
-    navigate('/login');
-  };
 
   return (
     <div className="home-container">

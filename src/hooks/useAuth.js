@@ -107,6 +107,7 @@ const useAuth = () => {
     localStorage.removeItem('role');
     setToken(null);
     setRole(null);
+    window.location.reload();
   };
 
   const isAuthenticated = !!token;
