@@ -19,7 +19,7 @@ const ChatComponent = ({ userId }) => {
         const token = localStorage.getItem('token');
         if (!token || !userId) return;
 
-        const endpoint = `${API_URL}/messages/${userId}`;
+        const endpoint = `${API_URL}/chats/${userId}`;
         
         const response = await axios.get(endpoint, {
           headers: { Authorization: `Bearer ${token}` }
