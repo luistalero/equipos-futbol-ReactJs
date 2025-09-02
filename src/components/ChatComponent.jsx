@@ -62,7 +62,7 @@ const ChatComponent = ({ userId }) => {
         };
         
         // Envia el mensaje a través de la API REST
-        await axios.post(`${API_URL}/messages/send`, messagePayload, {
+        await axios.post(`${API_URL}/chats/send`, messagePayload, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
