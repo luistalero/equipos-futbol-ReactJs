@@ -9,7 +9,7 @@ const PrivateRoute = ({ children }) => {
 
     return isAuthenticated ? (
         <>
-            {/* <ChatComponent userId={userId} /> */}
+            <ChatComponent userId={userId} />
             {/* <ChatwootComponent /> */}
             {children}
         </>
