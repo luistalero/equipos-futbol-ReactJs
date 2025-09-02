@@ -46,7 +46,6 @@ export const AuthProvider = ({ children }) => {
     setIsAuthErrorModalVisible(false);
   };
   
-  // Efecto para manejar la lógica de autenticación y la validación del token
   useEffect(() => {
     const checkTokenValidity = async () => {
       const storedToken = localStorage.getItem('token');
@@ -79,10 +78,9 @@ export const AuthProvider = ({ children }) => {
     checkTokenValidity();
   }, [token, API_URL]);
 
-  // Efecto para manejar la conexión de WebSocket
   useEffect(() => {
     let ws;
-    if (userId) { // Solo conecta si el userId está disponible
+    if (userId) { 
       ws = new WebSocket(VITE_WS_URL);
       ws.onopen = () => {
         console.log('Conectado al WebSocket.');
@@ -105,7 +103,6 @@ export const AuthProvider = ({ children }) => {
       ws.onerror = (error) => { console.error('Error en el WebSocket:', error); };
     }
     
-    // Función de limpieza para cerrar la conexión del WebSocket
     return () => {
       if (ws) {
         ws.close();
