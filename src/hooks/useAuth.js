@@ -1,13 +1,10 @@
-import { useState, useEffect, useContext, createContext } from 'react';
+import { useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const AuthContext = createContext();
-
-export const useAuth = () => useContext(AuthContext);
-
-export const AuthProvider = ({ children }) => {
+const useAuth = () => {
+  // Estado para manejar los datos del usuario y el token
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [role, setRole] = useState(() => localStorage.getItem('role'));
   const [userId, setUserId] = useState(() => {
@@ -23,13 +20,16 @@ export const AuthProvider = ({ children }) => {
     return null;
   });
 
+  // Estados para manejar la visibilidad de los modales
   const [isSuspendedModalVisible, setIsSuspendedModalVisible] = useState(false);
   const [isAuthErrorModalVisible, setIsAuthErrorModalVisible] = useState(false);
   const navigate = useNavigate();
 
+  // Variables de entorno para la API y WebSocket
   const API_URL = import.meta.env.VITE_API_BASE_URL_DOCKER;
   const VITE_WS_URL = import.meta.env.VITE_WS_URL;
 
+  // Función para cerrar la sesión del usuario, limpia el estado y el almacenamiento local.
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
@@ -41,11 +41,14 @@ export const AuthProvider = ({ children }) => {
     navigate('/login');
   };
 
+  // Función para cerrar los modales de alerta
   const handleModalClose = () => {
     setIsSuspendedModalVisible(false);
     setIsAuthErrorModalVisible(false);
   };
   
+  // Primer useEffect: Se encarga de la validación del token y el estado del usuario.
+  // Se ejecuta al cargar la aplicación y cada vez que el token cambie.
   useEffect(() => {
     const checkTokenValidity = async () => {
       const storedToken = localStorage.getItem('token');
@@ -78,6 +81,8 @@ export const AuthProvider = ({ children }) => {
     checkTokenValidity();
   }, [token, API_URL]);
 
+  // Segundo useEffect: Se encarga de la conexión WebSocket.
+  // Se ejecuta solo cuando el userId está disponible, evitando conexiones innecesarias.
   useEffect(() => {
     let ws;
     if (userId) { 
@@ -103,6 +108,7 @@ export const AuthProvider = ({ children }) => {
       ws.onerror = (error) => { console.error('Error en el WebSocket:', error); };
     }
     
+    // Función de limpieza para cerrar la conexión del WebSocket
     return () => {
       if (ws) {
         ws.close();
@@ -110,6 +116,7 @@ export const AuthProvider = ({ children }) => {
     };
   }, [userId, token, VITE_WS_URL]);
 
+  // Función para manejar el inicio de sesión
   const login = (jwtToken, userRole) => {
     localStorage.setItem('token', jwtToken);
     localStorage.setItem('role', userRole);
@@ -123,10 +130,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Propiedades derivadas para facilitar el uso en componentes
   const isAuthenticated = !!token;
   const isAdmin = role === 'admin';
 
-  return { 
+  // Objeto que se devuelve para ser usado en el contexto
+  const value = { 
     token, 
     isAuthenticated, 
     isAdmin, 
@@ -137,6 +146,8 @@ export const AuthProvider = ({ children }) => {
     login, 
     logout 
   };
+
+  return value;
 };
 
 export default useAuth;
