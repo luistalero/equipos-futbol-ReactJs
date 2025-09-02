@@ -7,6 +7,7 @@ const useAuth = () => {
   const [role, setRole] = useState(() => localStorage.getItem('role'));
 
   const API_URL = import.meta.env.VITE_API_URL;
+  const VITE_WS_URL = import.meta.env.VITE_WS_URL;
 
   useEffect(() => {
     // Función para verificar la expiración del token
@@ -58,7 +59,7 @@ const useAuth = () => {
 
     checkTokenExpiration();
 
-    const ws = new WebSocket(API_URL);
+    const ws = new WebSocket(VITE_WS_URL);
 
     ws.onopen = () => {
       console.log('Conexión WebSocket establecida para notificaciones de suspensión.');
@@ -91,7 +92,7 @@ const useAuth = () => {
       ws.close();
     };
     
-  }, [token, API_URL]);
+  }, [token, VITE_WS_URL]);
 
   const login = (jwtToken, userRole) => {
     localStorage.setItem('token', jwtToken);
