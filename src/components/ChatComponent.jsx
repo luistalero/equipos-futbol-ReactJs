@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
-import '../styles/components/chat.css'; // Importa el nuevo archivo de estilos
 
 // Define la URL de la API
 const API_URL = import.meta.env.VITE_API_BASE_URL_DOCKER || 'https://equipos-futbol-nodejs-production.up.railway.app/api';
