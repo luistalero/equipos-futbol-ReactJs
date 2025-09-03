@@ -189,6 +189,8 @@ const styles = `
   box-shadow: 0 4px 10px rgba(0,0,0,0.25);
   cursor: pointer;
   transition: transform 0.2s ease, background 0.3s ease;
+  width: 70px;
+  height: 70px;
 }
 .chat-bubble-button:hover {
   background: #1e40af;
