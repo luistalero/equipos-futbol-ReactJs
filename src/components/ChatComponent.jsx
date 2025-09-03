@@ -230,9 +230,11 @@ const styles = `
 }
 .chat-header-close-button {
   background: transparent;
-  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
   cursor: pointer;
-  color: white;
+  color: black;
   transition: transform 0.2s ease;
 }
 .chat-header-close-button:hover {
